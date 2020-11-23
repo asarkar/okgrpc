@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ReflectionTestDepthThreeProto";
+
+package com.asarkar.okgrpc.test;
+
+message EmptyMessage {}
+
+message ThirdLevelType {
+  string message = 1;
+  google.protobuf.Any submsg = 2;
+}
+
+message NestedTypeOuter {
+  message Middle {
+    message Inner {
+      int32 ival = 1;
+    }
+  }
+}

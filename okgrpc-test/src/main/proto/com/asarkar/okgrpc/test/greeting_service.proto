@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "com/asarkar/okgrpc/test/greeting.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "GreetingServiceProto";
+
+package com.asarkar.okgrpc.test;
+
+service GreetingService {
+    rpc Greet(com.asarkar.okgrpc.test.GreetRequest) returns (com.asarkar.okgrpc.test.GreetResponse) {};
+
+    rpc GreetManyTimes(com.asarkar.okgrpc.test.GreetRequest) returns (stream com.asarkar.okgrpc.test.GreetResponse) {};
+
+    rpc LongGreet(stream com.asarkar.okgrpc.test.GreetRequest) returns (com.asarkar.okgrpc.test.GreetResponse) {};
+
+    rpc GreetEveryone(stream com.asarkar.okgrpc.test.GreetRequest) returns (stream com.asarkar.okgrpc.test.GreetResponse) {};
+}

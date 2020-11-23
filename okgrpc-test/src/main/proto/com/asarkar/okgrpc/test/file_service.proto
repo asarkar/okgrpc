@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "FileServiceProto";
+
+package com.asarkar.okgrpc.test;
+
+service FileService {
+    rpc Upload(stream FileChunk) returns (FileId) {};
+
+    rpc Download(FileId) returns (stream FileChunk) {};
+}
+
+message FileChunk {
+    string file_id = 1;
+    bytes content = 2;
+    bool last = 3;
+}
+
+message FileId {
+    string id = 1;
+}

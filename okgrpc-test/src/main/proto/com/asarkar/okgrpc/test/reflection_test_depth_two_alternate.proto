@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+import "com/asarkar/okgrpc/test/reflection_test_depth_three.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ReflectionTestDepthTwoAlternateProto";
+
+package com.asarkar.okgrpc.test;

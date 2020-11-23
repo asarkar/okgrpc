@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "GreetingProto";
+
+package com.asarkar.okgrpc.test;
+
+message Greeting {
+    string name = 1;
+}
+
+message GreetRequest {
+    Greeting greeting = 1;
+}
+
+message GreetResponse {
+    string result = 1;
+}

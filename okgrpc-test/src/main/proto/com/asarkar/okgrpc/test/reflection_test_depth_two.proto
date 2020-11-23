@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "com/asarkar/okgrpc/test/reflection_test_depth_three.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ReflectionTestDepthTwoProto";
+
+package com.asarkar.okgrpc.test;
+
+message Request {
+  string message = 1;
+}
+
+message Reply {
+  string message = 1;
+}
+
+message ThirdLevelTypeSubMsg1 {
+  EmptyMessage nested_extension = 1;
+}

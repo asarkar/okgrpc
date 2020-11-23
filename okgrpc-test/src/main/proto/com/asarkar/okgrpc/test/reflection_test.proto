@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "com/asarkar/okgrpc/test/reflection_test_depth_two.proto";
+import "com/asarkar/okgrpc/test/reflection_test_depth_two_alternate.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ReflectionTestProto";
+
+package com.asarkar.okgrpc.test;
+
+message ThirdLevelTypeSubMsg2 {
+  int32 bar = 1;
+}
+
+service ReflectableService {
+  rpc Method (Request) returns (Reply) {}
+}
+
+service AnotherReflectableService {
+  rpc Method (Request) returns (Reply) {}
+}
