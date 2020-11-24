@@ -9,6 +9,7 @@ pluginManagement {
     val ktlintVersion: String by settings
     val bintrayPluginVersion: String by settings
     val grpcPluginVersion: String by settings
+    val shadowPluginVersion: String by settings
     plugins {
         kotlin("jvm") version kotlinVersion
         `maven-publish`
@@ -16,6 +17,7 @@ pluginManagement {
         id("org.jlleitschuh.gradle.ktlint") version ktlintVersion
         id("com.jfrog.bintray") version bintrayPluginVersion
         id("com.google.protobuf") version grpcPluginVersion
+        id("com.github.johnrengelman.shadow") version shadowPluginVersion
         `java-library`
     }
 }

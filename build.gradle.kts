@@ -122,9 +122,9 @@ subprojects {
             publications {
                 create<MavenPublication>("maven") {
                     afterEvaluate {
-                        val distZip = tasks.findByName("distZip")
-                        if (distZip == null) from(components["java"])
-                        else artifact(distZip)
+                        val shadowJar = tasks.findByName("shadowJar")
+                        if (shadowJar == null) from(components["java"])
+                        else artifact(shadowJar)
                     }
                     artifact(kdocJar)
                     artifact(sourcesJar)

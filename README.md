@@ -12,7 +12,9 @@ only needs Java 8 or later.
 
 You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/_latestVersion)
 
-Type `okgrpc-cli --help` for main CLI usage, and `okgrpc-cli <command> --help` for specific command usage.
+It's an executable JAR. Run with `--help` for main CLI usage, and `<command> --help` for specific command usage.
+
+> For brevity, I show `java -jar okgrpc-cli-<version>.jar` simply as `okgrpc-cli` below.
 
 Get all services:
 ```

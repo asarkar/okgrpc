@@ -1,5 +1,5 @@
 plugins {
-    application
+    id("com.github.johnrengelman.shadow")
 }
 
 val cliktVersion: String by project
@@ -11,6 +11,12 @@ dependencies {
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
 }
 
-application {
-    mainClass.set("com.asarkar.okgrpc.OkGrpcCliKt")
+project.tasks.findByName("jar")?.enabled = false
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    mergeServiceFiles()
+    archiveClassifier.set("")
+    manifest {
+        attributes(mapOf("Main-Class" to "com.asarkar.okgrpc.OkGrpcCliKt"))
+    }
 }
