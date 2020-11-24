@@ -42,8 +42,8 @@ internal class OkGrpcDescCommandHandler : OkGrpcCommandHandler<OkGrpcDescCommand
             client.use { it.findProtoBySymbol(command.symbol) }
         }
         return when (command.kind) {
-            DescKind.SERVICE -> listOf(proto.toString())
-            DescKind.METHOD ->
+            SymbolType.SERVICE -> listOf(proto.toString())
+            SymbolType.METHOD ->
                 proto.serviceList
                     .flatMap { it.methodList }
                     .filter { it.name == GrpcMethod.parseMethod(command.symbol).method }

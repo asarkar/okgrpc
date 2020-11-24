@@ -12,9 +12,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             // Used by Flow builders
             "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             // Used by stub deadlines
-            "-Xopt-in=kotlin.time.ExperimentalTime",
-            // Used by Flow.flatMapMerge
-            "-Xopt-in=kotlinx.coroutines.FlowPreview"
+            "-Xopt-in=kotlin.time.ExperimentalTime"
         )
     }
 }

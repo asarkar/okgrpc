@@ -32,7 +32,7 @@ class OkGrpcDescCommandHandlerTest {
     fun testDescribeService() {
         val protos = handler.handleCommand(
             OkGrpcDescCommand(
-                DescKind.SERVICE,
+                SymbolType.SERVICE,
                 name,
                 "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetingService"
             )
@@ -92,7 +92,7 @@ class OkGrpcDescCommandHandlerTest {
     fun testDescribeMethod() {
         val protos = handler.handleCommand(
             OkGrpcDescCommand(
-                DescKind.METHOD,
+                SymbolType.METHOD,
                 name,
                 "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetingService.Greet"
             )
@@ -114,7 +114,7 @@ class OkGrpcDescCommandHandlerTest {
     fun testDescribeType() {
         val protos = handler.handleCommand(
             OkGrpcDescCommand(
-                DescKind.TYPE,
+                SymbolType.TYPE,
                 name,
                 "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetRequest"
             )

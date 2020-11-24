@@ -2,17 +2,17 @@ package com.asarkar.okgrpc.internal
 
 internal interface OkGrpcCommand
 
+internal enum class SymbolType {
+    SERVICE, METHOD, TYPE
+}
+
 internal data class OkGrpcGetCommand(
     val address: String,
     val patterns: Set<String> = emptySet()
 ) : OkGrpcCommand
 
-internal enum class DescKind {
-    SERVICE, METHOD, TYPE
-}
-
 internal data class OkGrpcDescCommand(
-    val kind: DescKind,
+    val kind: SymbolType,
     val address: String,
     val symbol: String
 ) : OkGrpcCommand

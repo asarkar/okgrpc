@@ -1,17 +1,18 @@
 # OkGRPC
 
 gRPC Java client and CLI based on [gRPC Server Reflection](https://github.com/grpc/grpc/blob/master/doc/server-reflection.md).
-Can be used to inspect gRPC services and execute gRPC methods dynamically without needing a proto file. The client can
+Can be used to inspect gRPC services and execute RPC methods dynamically without needing a proto file. The client can
 be directly used from any JVM source code, while the CLI can be executed on command line. No installation necessary,
 only needs Java 8 or later.
 
 [![](https://github.com/asarkar/okgrpc/workflows/CI%20Pipeline/badge.svg)](https://github.com/asarkar/okgrpc/actions?query=workflow%3A%22CI+Pipeline%22)
 
-## Installation
-
-You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc/_latestVersion)
 
 ## CLI Usage
+
+You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/_latestVersion)
+
+Type `okgrpc-cli --help` for main CLI usage, and `okgrpc-cli <command> --help` for specific command usage.
 
 Get all services:
 ```
@@ -71,13 +72,24 @@ $ okgrpc-cli -a localhost:64575 exec \
 }
 ```
 
+It is perfectly fine to send multiple requests for client streaming calls; each string needs to be a valid JSON 
+representing the Protobuf request object.
+
+Binary data may be sent in the request as valid UTF-8 encoded string (like Base64). Of course, the server needs to 
+know that and decode accordingly.
+
 ## Client Usage
 
-```
-OkGrpcClient.Builder()
+You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-client/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-client/_latestVersion)
+
+```kotlin
+val client = OkGrpcClient.Builder()
     .withChannel(ManagedChannelFactory.getInstance(address))
     .build()
 ```
+
+All the methods are defined as extension functions in the `OkGrpcClientExtn` file, that from Java, will become `static`
+methods in `OkGrpcClientExtnKt` class.
 
 See KDoc for more details.
 

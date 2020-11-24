@@ -6,11 +6,23 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+/**
+ * gRPC Java client based on [gRPC Server Reflection](https://github.com/grpc/grpc/blob/master/doc/server-reflection.md).
+ * Can be used to inspect gRPC services and execute RPC methods dynamically without needing a proto file.
+ * An instance of the client is tied with a specific [channel].
+ *
+ * @author Abhijit Sarkar
+ */
 public class OkGrpcClient private constructor(
     public val channel: ManagedChannel,
     public val timeout: Duration,
     public val shutdownTimeout: Duration
 ) : AutoCloseable {
+    /**
+     * OkGrpc client builder.
+     *
+     * @author Abhijit Sarkar
+     */
     public class Builder {
         private var channel: ManagedChannel? = null
         private var timeout: Duration = 1.toDuration(DurationUnit.SECONDS)

@@ -19,12 +19,14 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapMerge
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 private val logger = LoggerFactory.getLogger(OkGrpcClient::class.java)
 
+/**
+ * Returns the list of all services.
+ */
 public fun OkGrpcClient.listServices(): Flow<String> {
     return callbackFlow {
         val requestObserver = ServerReflectionGrpc.newStub(this@listServices.channel)
@@ -58,16 +60,30 @@ public fun OkGrpcClient.listServices(): Flow<String> {
     }
 }
 
-public fun OkGrpcClient.listServiceProtos(): Flow<DescriptorProtos.FileDescriptorProto> {
-    return listServices()
-        .flatMapMerge(Runtime.getRuntime().availableProcessors() / 2, this::lookupProtos)
-}
-
+/**
+ * Returns the proto file descriptor corresponding to the given [symbol]. A [symbol] could be a fully-qualified
+ * service name, method name, or type name.
+ */
 public suspend fun OkGrpcClient.findProtoBySymbol(symbol: String): DescriptorProtos.FileDescriptorProto {
     return lookupProtos(symbol, false)
         .first()
 }
 
+/**
+ * Executes an RPC denoted by the fully-qualified method name and returns the result. Requests are passed
+ * in as strings, where each string is a valid JSON representing the Protobuf request object. Client streaming
+ * calls are expected to send more than one requests.
+ * The response is returned as a stream ([Flow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/)),
+ * although it will not contain more than one element unless for server streaming calls.
+ * Using `Flow` for both request and response helps keep the API simple without the need for specialized method
+ * for each method type.
+ * Headers ([Metadata](https://grpc.github.io/grpc-java/javadoc/io/grpc/Metadata.html)) are passed in as string map,
+ * and serialized using an ASCII string marshaller. To use more general purpose headers, use the overloaded version
+ * of `exchange`.
+ *
+ * Binary data may be sent in the request as valid UTF-8 encoded string (like Base64). Of course, the server needs to
+ * know that and decode accordingly.
+ */
 @JvmOverloads
 public suspend fun OkGrpcClient.exchange(
     method: String,
@@ -84,6 +100,10 @@ public suspend fun OkGrpcClient.exchange(
     return exchange(grpcMethod, requests, callOptions, metadata)
 }
 
+/**
+ * Like its overloaded counterpart, except that it accepts general
+ * [Metadata](https://grpc.github.io/grpc-java/javadoc/io/grpc/Metadata.html) headers, not just strings.
+ */
 @JvmOverloads
 public suspend fun OkGrpcClient.exchange(
     method: GrpcMethod,

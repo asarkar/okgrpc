@@ -1,11 +1,9 @@
 package com.asarkar.okgrpc
 
 import com.asarkar.okgrpc.test.FileServiceImpl
-import com.asarkar.okgrpc.test.FileServiceProto
 import com.asarkar.okgrpc.test.GreetingProto
 import com.asarkar.okgrpc.test.GreetingServiceGrpc
 import com.asarkar.okgrpc.test.GreetingServiceImpl
-import com.asarkar.okgrpc.test.GreetingServiceProto
 import com.asarkar.okgrpc.test.asList
 import com.asarkar.okgrpc.test.inProcessServer
 import com.asarkar.okgrpc.test.newFileChunkJson
@@ -114,19 +112,6 @@ class OkGrpcClientTest {
             "GreetRequest",
             "GreetResponse"
         )
-    }
-
-    @Test
-    fun testListServiceProtos() {
-        val protos = runBlocking {
-            client.listServiceProtos()
-                .toList()
-        }
-        assertThat(protos).hasSize(4)
-        assertThat(protos).anyMatch { it.name == GreetingServiceProto.getDescriptor().name }
-        assertThat(protos).anyMatch { it.name == GreetingProto.getDescriptor().name }
-        assertThat(protos).anyMatch { it.name == "grpc/reflection/v1alpha/reflection.proto" }
-        assertThat(protos).anyMatch { it.name == FileServiceProto.getDescriptor().name }
     }
 
     @Test

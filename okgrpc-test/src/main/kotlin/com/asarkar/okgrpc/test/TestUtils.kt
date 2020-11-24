@@ -5,24 +5,35 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.grpc.BindableService
 import io.grpc.Server
+import io.grpc.ServerBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import java.io.InputStream
+import java.net.ServerSocket
 import kotlin.random.Random
 
 private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
-public fun randomStr(len: Int = 6): String {
+public fun randomStr(): String {
     return generateSequence {
         val i = Random.nextInt(0, charPool.size)
         charPool[i]
     }
-        .take(len)
+        .take(6)
         .joinToString("")
 }
 
 public fun inProcessServer(name: String, vararg services: BindableService): Server {
     return InProcessServerBuilder.forName(name)
         .directExecutor()
+        .also { services.fold(it) { a, b -> a.addService(b) } }
+        .build()
+}
+
+public fun randomFreePort(): Int = ServerSocket(0).use { it.localPort }
+
+public fun gRPCServer(port: Int, vararg services: BindableService): Server {
+    return ServerBuilder
+        .forPort(port)
         .also { services.fold(it) { a, b -> a.addService(b) } }
         .build()
 }

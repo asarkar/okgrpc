@@ -1,14 +1,15 @@
 package com.asarkar.okgrpc
 
-import com.asarkar.okgrpc.internal.DescKind
 import com.asarkar.okgrpc.internal.OkGrpcCommand
 import com.asarkar.okgrpc.internal.OkGrpcCommandHandler
 import com.asarkar.okgrpc.internal.OkGrpcDescCommand
 import com.asarkar.okgrpc.internal.OkGrpcExecCommand
 import com.asarkar.okgrpc.internal.OkGrpcGetCommand
+import com.asarkar.okgrpc.internal.SymbolType
 import com.github.ajalt.clikt.core.MissingArgument
 import com.github.ajalt.clikt.core.MissingOption
 import com.github.ajalt.clikt.core.NoSuchOption
+import com.github.ajalt.clikt.core.UsageError
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.AfterEach
@@ -40,10 +41,10 @@ class OkGrpcCliTest {
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.patterns).isEmpty()
 
-        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "get", "abc"))
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "get", "-p", "abc", "-p", "def"))
         cmd = getLatestCmd(getCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
-        assertThat(cmd.patterns).containsExactly("abc")
+        assertThat(cmd.patterns).containsExactlyInAnyOrder("abc", "def")
 
         assertThatExceptionOfType(MissingOption::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("get")) }
@@ -68,37 +69,37 @@ class OkGrpcCliTest {
         var cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.SERVICE)
+        assertThat(cmd.kind).isEqualTo(SymbolType.SERVICE)
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "-m", "abc"))
         cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.METHOD)
+        assertThat(cmd.kind).isEqualTo(SymbolType.METHOD)
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "-t", "abc"))
         cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.TYPE)
+        assertThat(cmd.kind).isEqualTo(SymbolType.TYPE)
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "abc", "-t"))
         cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.TYPE)
+        assertThat(cmd.kind).isEqualTo(SymbolType.TYPE)
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "abc", "-t"))
         cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.TYPE)
+        assertThat(cmd.kind).isEqualTo(SymbolType.TYPE)
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "abc", "-t", "-m"))
         cmd = getLatestCmd(descCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.symbol).isEqualTo("abc")
-        assertThat(cmd.kind).isEqualTo(DescKind.METHOD)
+        assertThat(cmd.kind).isEqualTo(SymbolType.METHOD)
 
         assertThatExceptionOfType(MissingArgument::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc")) }
@@ -126,7 +127,7 @@ class OkGrpcCliTest {
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
 
-        assertThatExceptionOfType(IllegalArgumentException::class.java)
+        assertThatExceptionOfType(UsageError::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "abc")) }
     }
 
