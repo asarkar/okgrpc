@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "EchoServiceProto";
+
+package com.asarkar.okgrpc.test;
+
+service EchoService {
+    rpc Echo(Ping) returns (Pong) {};
+}
+
+message Ping {
+    string message = 1;
+}
+
+message Pong {
+    string message = 1;
+    repeated Pair headers = 2;
+}
+
+message Pair {
+   string key = 1;
+   string value = 2;
+}

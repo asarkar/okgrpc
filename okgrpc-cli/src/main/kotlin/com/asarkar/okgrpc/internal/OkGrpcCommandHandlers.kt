@@ -64,7 +64,8 @@ internal class OkGrpcExecCommandHandler : OkGrpcCommandHandler<OkGrpcExecCommand
         return runBlocking {
             client.exchange(
                 command.method,
-                command.arguments.asFlow()
+                command.arguments.asFlow(),
+                headers = command.headers
             )
                 .onCompletion { client.close() }
                 .toList()

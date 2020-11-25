@@ -6,6 +6,7 @@ import com.asarkar.okgrpc.internal.OkGrpcDescCommand
 import com.asarkar.okgrpc.internal.OkGrpcExecCommand
 import com.asarkar.okgrpc.internal.OkGrpcGetCommand
 import com.asarkar.okgrpc.internal.SymbolType
+import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.MissingArgument
 import com.github.ajalt.clikt.core.MissingOption
 import com.github.ajalt.clikt.core.NoSuchOption
@@ -117,6 +118,7 @@ class OkGrpcCliTest {
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
+        assertThat(cmd.headers).isEmpty()
 
         val tempFile = Files.createTempFile(tempDir, null, null).toFile()
         tempFile.writeText("x${System.lineSeparator()}y")
@@ -126,9 +128,19 @@ class OkGrpcCliTest {
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
+        assertThat(cmd.headers).isEmpty()
+
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-h", "key1:value1", "-h", "key2:value2", "abc", "x"))
+        cmd = getLatestCmd(execCommandHandler)
+        assertThat(cmd.address).isEqualTo("localhost:8080")
+        assertThat(cmd.method).isEqualTo("abc")
+        assertThat(cmd.arguments).containsExactly("x")
+        assertThat(cmd.headers).containsAllEntriesOf(mapOf("key1" to "value1", "key2" to "value2"))
 
         assertThatExceptionOfType(UsageError::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "abc")) }
+        assertThatExceptionOfType(BadParameterValue::class.java)
+            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-h", "key1=value1", "abc", "x")) }
     }
 
     private inline fun <reified T> anyNonNull(): T = Mockito.any(T::class.java)

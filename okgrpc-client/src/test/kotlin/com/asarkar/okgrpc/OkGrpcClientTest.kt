@@ -1,17 +1,21 @@
 package com.asarkar.okgrpc
 
+import com.asarkar.okgrpc.test.EchoServiceImpl
 import com.asarkar.okgrpc.test.FileServiceImpl
 import com.asarkar.okgrpc.test.GreetingProto
 import com.asarkar.okgrpc.test.GreetingServiceGrpc
 import com.asarkar.okgrpc.test.GreetingServiceImpl
+import com.asarkar.okgrpc.test.MetadataTransferringServerInterceptor
 import com.asarkar.okgrpc.test.asList
 import com.asarkar.okgrpc.test.inProcessServer
 import com.asarkar.okgrpc.test.newFileChunkJson
 import com.asarkar.okgrpc.test.newFileIdJson
 import com.asarkar.okgrpc.test.newGreetRequestJson
+import com.asarkar.okgrpc.test.newPingJson
 import com.asarkar.okgrpc.test.parseFileChunk
 import com.asarkar.okgrpc.test.parseFileId
 import com.asarkar.okgrpc.test.parseGreetResponse
+import com.asarkar.okgrpc.test.parsePongResponse
 import com.asarkar.okgrpc.test.randomStr
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Server
@@ -34,9 +38,11 @@ class OkGrpcClientTest {
     private val name = randomStr()
     private val server: Server = inProcessServer(
         name,
+        listOf(MetadataTransferringServerInterceptor()),
         ProtoReflectionService.newInstance(),
         GreetingServiceImpl(),
-        FileServiceImpl()
+        FileServiceImpl(),
+        EchoServiceImpl()
     )
     private val client: OkGrpcClient = OkGrpcClient.Builder()
         .withChannel(ManagedChannelFactory.getInstance(name))
@@ -62,6 +68,7 @@ class OkGrpcClientTest {
         assertThat(services).containsExactlyInAnyOrder(
             "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetingService",
             "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.FileService",
+            "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService",
             "grpc.reflection.v1alpha.ServerReflection",
         )
     }
@@ -124,7 +131,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreetResponse(responses.first())).isEqualTo("Hello, test")
+        assertThat(parseGreetResponse(responses.first()).result).isEqualTo("Hello, test")
     }
 
     @Test
@@ -138,7 +145,7 @@ class OkGrpcClientTest {
         }
         assertThat(responses).hasSize(3)
         assertThat(responses.zip(1..3)).allMatch { pair ->
-            parseGreetResponse(pair.first) == "Hello, test[${pair.second}]"
+            parseGreetResponse(pair.first).result == "Hello, test[${pair.second}]"
         }
     }
 
@@ -156,7 +163,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreetResponse(responses.first()))
+        assertThat(parseGreetResponse(responses.first()).result)
             .isEqualTo("Hello, test! Hello, test! Hello, test")
     }
 
@@ -175,7 +182,7 @@ class OkGrpcClientTest {
         }
         assertThat(responses).hasSize(3)
         assertThat(responses)
-            .allMatch { parseGreetResponse(it) == "Hello, test" }
+            .allMatch { parseGreetResponse(it).result == "Hello, test" }
     }
 
     @Test
@@ -227,7 +234,7 @@ class OkGrpcClientTest {
         }
         assertThat(responses).hasSize(1)
         val id = parseFileId(responses.first())
-        assertThat(id).isEqualTo(fileId)
+        assertThat(id.id).isEqualTo(fileId)
 
         val chunks2 = runBlocking {
             client.exchange(
@@ -242,8 +249,25 @@ class OkGrpcClientTest {
         }
         val decoder = Base64.getDecoder()
         assertThat(chunks2.zip(chunks2.indices)).allMatch {
-            val decoded = decoder.decode(parseFileChunk(it.first))
+            val decoded = decoder.decode(parseFileChunk(it.first).content.toStringUtf8())
             decoded.contentEquals(chunks1[it.second])
         }
+    }
+
+    @Test
+    fun testEcho() {
+        val responses = runBlocking {
+            client.exchange(
+                "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService.Echo",
+                flowOf(newPingJson("test")),
+                headers = mapOf("key" to "value")
+            )
+                .toList()
+        }
+        assertThat(responses).hasSize(1)
+        val pong = parsePongResponse(responses.first())
+        assertThat(pong.message).isEqualTo("test")
+        assertThat(pong.headersList).isNotEmpty
+        assertThat(pong.headersList).anyMatch { it.key == "key" && it.value == "value" }
     }
 }

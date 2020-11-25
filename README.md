@@ -67,6 +67,7 @@ field {
 Execute a method:
 ```
 $ okgrpc-cli -a localhost:64575 exec \
+  > -h "key: value" \
   > com.asarkar.okgrpc.test.GreetingService.Greet \
   > '{ "greeting": { "name" : "test" } }'
 {

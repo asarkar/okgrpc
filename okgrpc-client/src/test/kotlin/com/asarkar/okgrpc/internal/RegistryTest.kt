@@ -124,6 +124,6 @@ class RegistryTest {
             registry.typeRegistry.convertOutput(flowOf(request)).toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreeting(responses.first())).isEqualTo("test")
+        assertThat(parseGreeting(responses.first()).name).isEqualTo("test")
     }
 }

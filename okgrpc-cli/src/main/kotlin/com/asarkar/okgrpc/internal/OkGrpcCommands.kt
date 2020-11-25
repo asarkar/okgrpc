@@ -20,5 +20,6 @@ internal data class OkGrpcDescCommand(
 internal data class OkGrpcExecCommand(
     val address: String,
     val method: String,
-    val arguments: List<String>
+    val arguments: List<String>,
+    val headers: Map<String, String>
 ) : OkGrpcCommand

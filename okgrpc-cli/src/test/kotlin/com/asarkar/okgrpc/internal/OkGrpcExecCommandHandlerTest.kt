@@ -1,10 +1,11 @@
 package com.asarkar.okgrpc.internal
 
+import com.asarkar.okgrpc.test.EchoServiceImpl
 import com.asarkar.okgrpc.test.GreetingServiceGrpc
-import com.asarkar.okgrpc.test.GreetingServiceImpl
+import com.asarkar.okgrpc.test.MetadataTransferringServerInterceptor
 import com.asarkar.okgrpc.test.inProcessServer
-import com.asarkar.okgrpc.test.newGreetRequestJson
-import com.asarkar.okgrpc.test.parseGreetResponse
+import com.asarkar.okgrpc.test.newPingJson
+import com.asarkar.okgrpc.test.parsePongResponse
 import com.asarkar.okgrpc.test.randomStr
 import io.grpc.Server
 import io.grpc.protobuf.services.ProtoReflectionService
@@ -17,7 +18,12 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OkGrpcExecCommandHandlerTest {
     private val name = randomStr()
-    private val server: Server = inProcessServer(name, ProtoReflectionService.newInstance(), GreetingServiceImpl())
+    private val server: Server = inProcessServer(
+        name,
+        listOf(MetadataTransferringServerInterceptor()),
+        ProtoReflectionService.newInstance(),
+        EchoServiceImpl()
+    )
     private val handler = OkGrpcExecCommandHandler()
 
     @BeforeAll
@@ -31,15 +37,19 @@ class OkGrpcExecCommandHandlerTest {
     }
 
     @Test
-    fun testExecUnary() {
+    fun testExec() {
         val responses = handler.handleCommand(
             OkGrpcExecCommand(
                 name,
-                "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetingService.Greet",
-                listOf(newGreetRequestJson())
+                "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService.Echo",
+                listOf(newPingJson("test")),
+                headers = mapOf("key" to "value")
             )
         )
         assertThat(responses).hasSize(1)
-        assertThat(parseGreetResponse(responses.first())).isEqualTo("Hello, test")
+        val pong = parsePongResponse(responses.first())
+        assertThat(pong.message).isEqualTo("test")
+        assertThat(pong.headersList).isNotEmpty
+        assertThat(pong.headersList).anyMatch { it.key == "key" && it.value == "value" }
     }
 }

@@ -14,6 +14,7 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.check
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
@@ -80,9 +81,9 @@ public class OkGrpcCli private constructor() : CliktCommand(name = "okgrpc-cli")
 
 private class Get(val handler: OkGrpcCommandHandler<OkGrpcGetCommand>) : CliktCommand() {
     private val patterns: Set<String> by option(
-        "--patterns",
+        "--pattern",
         "-p",
-        help = "Space delimited patterns to filter the services returned; works like case-insensitive grep"
+        help = "Pattern to filter the services returned; works like case-insensitive grep, no regex"
     )
         .multiple()
         .unique()
@@ -128,6 +129,13 @@ private class Execute(val handler: OkGrpcCommandHandler<OkGrpcExecCommand>) : Cl
     private val fileArgs by option("--file", "-f", help = "File to read arguments from")
         .file(mustExist = true, canBeDir = false, mustBeReadable = true)
         .convert { it.readLines() }
+    private val headers: List<String> by option(
+        "--header",
+        "-h",
+        help = "Header in the form of key:value"
+    )
+        .multiple()
+        .check("Header must be in the form of key:value") { headers -> headers.all { it.contains(':') } }
     private val config by requireObject<OkGrpcCli.Config>()
 
     override fun run() {
@@ -139,7 +147,12 @@ private class Execute(val handler: OkGrpcCommandHandler<OkGrpcExecCommand>) : Cl
                 OkGrpcExecCommand(
                     config.address,
                     method,
-                    cmdArgs.takeIf { it.isNotEmpty() } ?: fileArgs!!
+                    cmdArgs.takeIf { it.isNotEmpty() } ?: fileArgs!!,
+                    headers.map {
+                        val parts = it.split(':')
+                        parts.first().trim() to parts.last().trim()
+                    }
+                        .toMap()
                 )
             )
                 .forEach(::println)
