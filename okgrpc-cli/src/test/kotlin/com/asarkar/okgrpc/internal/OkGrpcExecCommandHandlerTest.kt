@@ -1,7 +1,7 @@
 package com.asarkar.okgrpc.internal
 
+import com.asarkar.okgrpc.test.EchoServiceGrpc
 import com.asarkar.okgrpc.test.EchoServiceImpl
-import com.asarkar.okgrpc.test.GreetingServiceGrpc
 import com.asarkar.okgrpc.test.MetadataTransferringServerInterceptor
 import com.asarkar.okgrpc.test.inProcessServer
 import com.asarkar.okgrpc.test.newPingJson
@@ -41,7 +41,7 @@ class OkGrpcExecCommandHandlerTest {
         val responses = handler.handleCommand(
             OkGrpcExecCommand(
                 name,
-                "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService.Echo",
+                "${EchoServiceGrpc.EchoServiceImplBase::class.java.packageName}.EchoService.Echo",
                 listOf(newPingJson("test")),
                 headers = mapOf("key" to "value")
             )

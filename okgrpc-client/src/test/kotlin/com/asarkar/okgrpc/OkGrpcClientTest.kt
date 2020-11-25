@@ -1,6 +1,8 @@
 package com.asarkar.okgrpc
 
+import com.asarkar.okgrpc.test.EchoServiceGrpc
 import com.asarkar.okgrpc.test.EchoServiceImpl
+import com.asarkar.okgrpc.test.FileServiceGrpc
 import com.asarkar.okgrpc.test.FileServiceImpl
 import com.asarkar.okgrpc.test.GreetingProto
 import com.asarkar.okgrpc.test.GreetingServiceGrpc
@@ -67,8 +69,8 @@ class OkGrpcClientTest {
         }
         assertThat(services).containsExactlyInAnyOrder(
             "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.GreetingService",
-            "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.FileService",
-            "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService",
+            "${FileServiceGrpc.FileServiceImplBase::class.java.packageName}.FileService",
+            "${EchoServiceGrpc.EchoServiceImplBase::class.java.packageName}.EchoService",
             "grpc.reflection.v1alpha.ServerReflection",
         )
     }
@@ -258,7 +260,7 @@ class OkGrpcClientTest {
     fun testEcho() {
         val responses = runBlocking {
             client.exchange(
-                "${GreetingServiceGrpc.GreetingServiceImplBase::class.java.packageName}.EchoService.Echo",
+                "${EchoServiceGrpc.EchoServiceImplBase::class.java.packageName}.EchoService.Echo",
                 flowOf(newPingJson("test")),
                 headers = mapOf("key" to "value")
             )
