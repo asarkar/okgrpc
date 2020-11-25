@@ -2,22 +2,22 @@ package com.asarkar.okgrpc
 
 import com.asarkar.okgrpc.test.EchoServiceGrpc
 import com.asarkar.okgrpc.test.EchoServiceImpl
+import com.asarkar.okgrpc.test.FileChunk
+import com.asarkar.okgrpc.test.FileId
 import com.asarkar.okgrpc.test.FileServiceGrpc
 import com.asarkar.okgrpc.test.FileServiceImpl
+import com.asarkar.okgrpc.test.GreetResponse
 import com.asarkar.okgrpc.test.GreetingProto
 import com.asarkar.okgrpc.test.GreetingServiceGrpc
 import com.asarkar.okgrpc.test.GreetingServiceImpl
 import com.asarkar.okgrpc.test.MetadataTransferringServerInterceptor
-import com.asarkar.okgrpc.test.asList
+import com.asarkar.okgrpc.test.Pong
 import com.asarkar.okgrpc.test.inProcessServer
 import com.asarkar.okgrpc.test.newFileChunkJson
 import com.asarkar.okgrpc.test.newFileIdJson
 import com.asarkar.okgrpc.test.newGreetRequestJson
 import com.asarkar.okgrpc.test.newPingJson
-import com.asarkar.okgrpc.test.parseFileChunk
-import com.asarkar.okgrpc.test.parseFileId
-import com.asarkar.okgrpc.test.parseGreetResponse
-import com.asarkar.okgrpc.test.parsePongResponse
+import com.asarkar.okgrpc.test.parse
 import com.asarkar.okgrpc.test.randomStr
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.Server
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.io.InputStream
 import java.util.Base64
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -133,7 +134,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreetResponse(responses.first()).result).isEqualTo("Hello, test")
+        assertThat(parse<GreetResponse>(responses.first()).result).isEqualTo("Hello, test")
     }
 
     @Test
@@ -147,7 +148,7 @@ class OkGrpcClientTest {
         }
         assertThat(responses).hasSize(3)
         assertThat(responses.zip(1..3)).allMatch { pair ->
-            parseGreetResponse(pair.first).result == "Hello, test[${pair.second}]"
+            parse<GreetResponse>(pair.first).result == "Hello, test[${pair.second}]"
         }
     }
 
@@ -165,7 +166,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreetResponse(responses.first()).result)
+        assertThat(parse<GreetResponse>(responses.first()).result)
             .isEqualTo("Hello, test! Hello, test! Hello, test")
     }
 
@@ -184,7 +185,7 @@ class OkGrpcClientTest {
         }
         assertThat(responses).hasSize(3)
         assertThat(responses)
-            .allMatch { parseGreetResponse(it).result == "Hello, test" }
+            .allMatch { parse<GreetResponse>(it).result == "Hello, test" }
     }
 
     @Test
@@ -235,7 +236,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        val id = parseFileId(responses.first())
+        val id = parse<FileId>(responses.first())
         assertThat(id.id).isEqualTo(fileId)
 
         val chunks2 = runBlocking {
@@ -251,8 +252,16 @@ class OkGrpcClientTest {
         }
         val decoder = Base64.getDecoder()
         assertThat(chunks2.zip(chunks2.indices)).allMatch {
-            val decoded = decoder.decode(parseFileChunk(it.first).content.toStringUtf8())
+            val decoded = decoder.decode(parse<FileChunk>(it.first).content.toStringUtf8())
             decoded.contentEquals(chunks1[it.second])
+        }
+    }
+
+    private fun InputStream.asList(): List<ByteArray> {
+        return this.use {
+            generateSequence { readNBytes(512) }
+                .takeWhile { it.isNotEmpty() }
+                .toList()
         }
     }
 
@@ -267,7 +276,7 @@ class OkGrpcClientTest {
                 .toList()
         }
         assertThat(responses).hasSize(1)
-        val pong = parsePongResponse(responses.first())
+        val pong = parse<Pong>(responses.first())
         assertThat(pong.message).isEqualTo("test")
         assertThat(pong.headersList).isNotEmpty
         assertThat(pong.headersList).anyMatch { it.key == "key" && it.value == "value" }

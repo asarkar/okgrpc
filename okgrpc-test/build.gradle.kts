@@ -21,6 +21,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion") {
         exclude("org.jetbrains.kotlin", module = "kotlin-reflect")
     }
+    implementation("com.google.protobuf:protobuf-java-util:$protobufVersion")
     runtimeOnly("org.jetbrains.kotlin:kotlin-reflect")
     compileOnly("javax.annotation:javax.annotation-api:$javaxAnnotationApiVersion")
 }

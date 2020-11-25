@@ -16,7 +16,7 @@ import com.asarkar.okgrpc.test.Request
 import com.asarkar.okgrpc.test.ThirdLevelType
 import com.asarkar.okgrpc.test.ThirdLevelTypeSubMsg1
 import com.asarkar.okgrpc.test.ThirdLevelTypeSubMsg2
-import com.asarkar.okgrpc.test.parseGreeting
+import com.asarkar.okgrpc.test.parse
 import com.google.protobuf.Any
 import com.google.protobuf.AnyProto
 import kotlinx.coroutines.flow.flowOf
@@ -124,6 +124,6 @@ class RegistryTest {
             registry.typeRegistry.convertOutput(flowOf(request)).toList()
         }
         assertThat(responses).hasSize(1)
-        assertThat(parseGreeting(responses.first()).name).isEqualTo("test")
+        assertThat(parse<GreetRequest>(responses.first()).greeting.name).isEqualTo("test")
     }
 }
