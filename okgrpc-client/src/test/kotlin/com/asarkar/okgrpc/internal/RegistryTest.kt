@@ -29,7 +29,7 @@ class RegistryTest {
     @Test
     fun testReflectionTestDepthThreeProto() {
         val registry = Registry.fromProtos(
-            listOf(
+            flowOf(
                 ReflectionTestDepthThreeProto.getDescriptor().toProto(),
                 AnyProto.getDescriptor().toProto()
             )
@@ -47,7 +47,7 @@ class RegistryTest {
     @Test
     fun testReflectionTestDepthTwoProto() {
         val registry = Registry.fromProtos(
-            listOf(
+            flowOf(
                 ReflectionTestDepthTwoProto.getDescriptor().toProto(),
                 ReflectionTestDepthThreeProto.getDescriptor().toProto(),
                 AnyProto.getDescriptor().toProto()
@@ -68,7 +68,7 @@ class RegistryTest {
     @Test
     fun testReflectionTestDepthTwoAlternateProto() {
         val registry = Registry.fromProtos(
-            listOf(
+            flowOf(
                 ReflectionTestDepthTwoAlternateProto.getDescriptor().toProto(),
                 ReflectionTestDepthThreeProto.getDescriptor().toProto(),
                 AnyProto.getDescriptor().toProto()
@@ -86,7 +86,7 @@ class RegistryTest {
     @Test
     fun testReflectionTestProto() {
         val registry = Registry.fromProtos(
-            listOf(
+            flowOf(
                 ReflectionTestProto.getDescriptor().toProto(),
                 ReflectionTestDepthTwoProto.getDescriptor().toProto(),
                 ReflectionTestDepthTwoAlternateProto.getDescriptor().toProto(),
@@ -116,7 +116,7 @@ class RegistryTest {
             .setGreeting(Greeting.newBuilder().setName("test").build())
             .build()
         val registry = Registry.fromProtos(
-            listOf(
+            flowOf(
                 GreetingProto.getDescriptor().toProto()
             )
         )

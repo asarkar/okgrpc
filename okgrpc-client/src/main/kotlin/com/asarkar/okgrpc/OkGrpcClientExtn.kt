@@ -17,6 +17,7 @@ import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import org.slf4j.LoggerFactory
@@ -83,13 +84,20 @@ public suspend fun OkGrpcClient.findProtoBySymbol(symbol: String): DescriptorPro
  *
  * Binary data may be sent in the request as valid UTF-8 encoded string (like Base64). Of course, the server needs to
  * know that and decode accordingly.
+ *
+ * If [protoPaths] and [protoFile] are provided, uses those to construct the request instead of gRPC reflection.
+ * [protoPaths] is a list of directories in which to search for proto file imports.
+ * [protoFile] is the service proto file *relative* to the [protoPaths].
+ * Both must be specified or omitted together; it is an error to specify one but not the other.
  */
 @JvmOverloads
 public suspend fun OkGrpcClient.exchange(
     method: String,
     requests: Flow<String>,
     callOptions: CallOptions = CallOptions.DEFAULT,
-    headers: Map<String, String> = emptyMap()
+    headers: Map<String, String> = emptyMap(),
+    protoPaths: List<String> = emptyList(),
+    protoFile: String? = null
 ): Flow<String> {
     val grpcMethod = GrpcMethod.parseMethod(method)
     val metadata = headers.entries.fold(Metadata()) { acc, kv ->
@@ -97,7 +105,7 @@ public suspend fun OkGrpcClient.exchange(
         acc.put(key, kv.value)
         acc
     }
-    return exchange(grpcMethod, requests, callOptions, metadata)
+    return exchange(grpcMethod, requests, callOptions, metadata, protoPaths, protoFile)
 }
 
 /**
@@ -109,9 +117,15 @@ public suspend fun OkGrpcClient.exchange(
     method: GrpcMethod,
     requests: Flow<String>,
     callOptions: CallOptions = CallOptions.DEFAULT,
-    metadata: Metadata = Metadata()
+    metadata: Metadata = Metadata(),
+    protoPaths: List<String> = emptyList(),
+    protoFile: String? = null
 ): Flow<String> {
-    val protos = lookupProtos(method.fullServiceName)
+    val protos = if (protoPaths.isEmpty()) lookupProtos(method.fullServiceName)
+    else {
+        require(protoFile != null) { "Proto file must not be null if proto path is not empty" }
+        lookupProtos(protoPaths, protoFile).asFlow()
+    }
     val registry = Registry.fromProtos(protos)
     val md = registry.methodRegistry.getMethodDescriptor(method)
 

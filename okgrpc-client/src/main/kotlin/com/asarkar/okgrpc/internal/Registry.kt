@@ -4,7 +4,6 @@ import com.asarkar.okgrpc.GrpcMethod
 import com.google.protobuf.DescriptorProtos
 import com.google.protobuf.Descriptors
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -54,7 +53,5 @@ internal class Registry private constructor(protos: Flow<DescriptorProtos.FileDe
 
     companion object {
         internal fun fromProtos(protos: Flow<DescriptorProtos.FileDescriptorProto>): Registry = Registry(protos)
-
-        internal fun fromProtos(protos: List<DescriptorProtos.FileDescriptorProto>): Registry = fromProtos(protos.asFlow())
     }
 }

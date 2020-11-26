@@ -21,5 +21,7 @@ internal data class OkGrpcExecCommand(
     val address: String,
     val method: String,
     val arguments: List<String>,
-    val headers: Map<String, String>
+    val headers: Map<String, String> = emptyMap(),
+    val protoPaths: List<String> = emptyList(),
+    val protoFile: String? = null
 ) : OkGrpcCommand

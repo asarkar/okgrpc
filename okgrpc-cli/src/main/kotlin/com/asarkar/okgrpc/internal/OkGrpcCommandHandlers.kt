@@ -65,7 +65,9 @@ internal class OkGrpcExecCommandHandler : OkGrpcCommandHandler<OkGrpcExecCommand
             client.exchange(
                 command.method,
                 command.arguments.asFlow(),
-                headers = command.headers
+                headers = command.headers,
+                protoPaths = command.protoPaths,
+                protoFile = command.protoFile
             )
                 .onCompletion { client.close() }
                 .toList()

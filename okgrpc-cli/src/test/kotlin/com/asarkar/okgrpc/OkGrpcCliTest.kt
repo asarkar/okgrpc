@@ -19,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mockito
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 @Suppress("UNCHECKED_CAST")
 class OkGrpcCliTest {
@@ -119,6 +120,8 @@ class OkGrpcCliTest {
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
         assertThat(cmd.headers).isEmpty()
+        assertThat(cmd.protoPaths).isEmpty()
+        assertThat(cmd.protoFile).isNull()
 
         val tempFile = Files.createTempFile(tempDir, null, null).toFile()
         tempFile.writeText("x${System.lineSeparator()}y")
@@ -129,6 +132,8 @@ class OkGrpcCliTest {
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
         assertThat(cmd.headers).isEmpty()
+        assertThat(cmd.protoPaths).isEmpty()
+        assertThat(cmd.protoFile).isNull()
 
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-h", "key1:value1", "-h", "key2:value2", "abc", "x"))
         cmd = getLatestCmd(execCommandHandler)
@@ -136,11 +141,27 @@ class OkGrpcCliTest {
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x")
         assertThat(cmd.headers).containsAllEntriesOf(mapOf("key1" to "value1", "key2" to "value2"))
+        assertThat(cmd.protoPaths).isEmpty()
+        assertThat(cmd.protoFile).isNull()
+
+        val protoPath = Paths.get(OkGrpcCliTest::class.java.protectionDomain.codeSource.location.toURI()).toString()
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "-pf", "file", "abc", "x", "y"))
+        cmd = getLatestCmd(execCommandHandler)
+        assertThat(cmd.address).isEqualTo("localhost:8080")
+        assertThat(cmd.method).isEqualTo("abc")
+        assertThat(cmd.arguments).containsExactly("x", "y")
+        assertThat(cmd.headers).isEmpty()
+        assertThat(cmd.protoPaths).containsExactly(protoPath)
+        assertThat(cmd.protoFile).isEqualTo("file")
 
         assertThatExceptionOfType(UsageError::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "abc")) }
         assertThatExceptionOfType(BadParameterValue::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-h", "key1=value1", "abc", "x")) }
+        assertThatExceptionOfType(UsageError::class.java)
+            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "abc", "x", "y")) }
+        assertThatExceptionOfType(UsageError::class.java)
+            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pf", "file", "abc", "x", "y")) }
     }
 
     private inline fun <reified T> anyNonNull(): T = Mockito.any(T::class.java)

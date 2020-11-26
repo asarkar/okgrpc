@@ -12,6 +12,8 @@ only needs Java 8 or later.
 
 You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-cli/_latestVersion)
 
+It's also on jcenter.
+
 It's an executable JAR. Run with `--help` for main CLI usage, and `<command> --help` for specific command usage.
 
 > For brevity, I show `java -jar okgrpc-cli-<version>.jar` simply as `okgrpc-cli` below.
@@ -81,9 +83,23 @@ representing the Protobuf request object.
 Binary data may be sent in the request as valid UTF-8 encoded string (like Base64). Of course, the server needs to 
 know that and decode accordingly.
 
+It is possible to use local `.proto` files if reflection isn't enabled on the server.
+```
+$ okgrpc-cli -a localhost:64575 exec \
+  > --proto-path=<directory in which to search for proto file imports> \
+  > --proto-file=<service proto file relative to the proto paths> \
+  > com.asarkar.okgrpc.test.GreetingService.Greet \
+  > '{ "greeting": { "name" : "test" } }'
+{
+  "result": "Hello, test"
+}
+```
+
 ## Client Usage
 
 You can find the latest version on Bintray. [ ![Download](https://api.bintray.com/packages/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-client/images/download.svg) ](https://bintray.com/asarkar/mvn/com.asarkar.grpc%3Aokgrpc-client/_latestVersion)
+
+It's also on jcenter.
 
 ```kotlin
 val client = OkGrpcClient.Builder()
