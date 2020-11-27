@@ -6,6 +6,7 @@ import com.asarkar.okgrpc.internal.OkGrpcDescCommand
 import com.asarkar.okgrpc.internal.OkGrpcExecCommand
 import com.asarkar.okgrpc.internal.OkGrpcGetCommand
 import com.asarkar.okgrpc.internal.SymbolType
+import com.asarkar.okgrpc.test.randomStr
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.MissingArgument
 import com.github.ajalt.clikt.core.MissingOption
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.Mockito
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
 @Suppress("UNCHECKED_CAST")
 class OkGrpcCliTest {
@@ -144,14 +144,34 @@ class OkGrpcCliTest {
         assertThat(cmd.protoPaths).isEmpty()
         assertThat(cmd.protoFile).isNull()
 
-        val protoPath = Paths.get(OkGrpcCliTest::class.java.protectionDomain.codeSource.location.toURI()).toString()
-        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "-pf", "file", "abc", "x", "y"))
+        val protoPath = tempFile.parent
+        val protoFile = tempFile.name
+
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "-pf", protoFile, "abc", "x", "y"))
         cmd = getLatestCmd(execCommandHandler)
         assertThat(cmd.address).isEqualTo("localhost:8080")
         assertThat(cmd.method).isEqualTo("abc")
         assertThat(cmd.arguments).containsExactly("x", "y")
         assertThat(cmd.headers).isEmpty()
         assertThat(cmd.protoPaths).containsExactly(protoPath)
+        assertThat(cmd.protoFile).isEqualTo(protoFile)
+
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pf", tempFile.absolutePath, "abc", "x", "y"))
+        cmd = getLatestCmd(execCommandHandler)
+        assertThat(cmd.address).isEqualTo("localhost:8080")
+        assertThat(cmd.method).isEqualTo("abc")
+        assertThat(cmd.arguments).containsExactly("x", "y")
+        assertThat(cmd.headers).isEmpty()
+        assertThat(cmd.protoPaths).containsExactly(protoPath)
+        assertThat(cmd.protoFile).isEqualTo(protoFile)
+
+        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pf", "file", "abc", "x"))
+        cmd = getLatestCmd(execCommandHandler)
+        assertThat(cmd.address).isEqualTo("localhost:8080")
+        assertThat(cmd.method).isEqualTo("abc")
+        assertThat(cmd.arguments).containsExactly("x")
+        assertThat(cmd.headers).isEmpty()
+        assertThat(cmd.protoPaths).isNotEmpty
         assertThat(cmd.protoFile).isEqualTo("file")
 
         assertThatExceptionOfType(UsageError::class.java)
@@ -161,7 +181,7 @@ class OkGrpcCliTest {
         assertThatExceptionOfType(UsageError::class.java)
             .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "abc", "x", "y")) }
         assertThatExceptionOfType(UsageError::class.java)
-            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pf", "file", "abc", "x", "y")) }
+            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "exec", "-pp", protoPath, "-pf", randomStr(), "abc", "x")) }
     }
 
     private inline fun <reified T> anyNonNull(): T = Mockito.any(T::class.java)

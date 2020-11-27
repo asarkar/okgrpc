@@ -12,9 +12,16 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import java.io.File
+import java.nio.file.Paths
 
 /**
  * exec subcommand. Executes a RPC method based on gRPC reflection, or local proto files.
+ *
+ * If local proto files are used, proto schemas are generated using a runtime proto parser. If [protoPath] is
+ * specified but a [protoFile] isn't, [protoPath] is deduced as the parent directory of the [protoFile] if it's
+ * an absolute path, or the present working directory otherwise. When both are specified, [protoPath] must be a
+ * proper prefix of the [protoFile] absolute path.
  *
  * @author Abhijit Sarkar
  */
@@ -38,15 +45,19 @@ internal class Execute(private val handler: OkGrpcCommandHandler<OkGrpcExecComma
     private val config by requireObject<OkGrpcCli.Config>()
 
     override fun run() {
-        if (cmdArgs.isEmpty() && (fileArgs == null || fileArgs!!.isEmpty())) {
-            throw UsageError("Either arguments or a file path must be provided")
-        }
-        if (protoPath.isEmpty() && protoFile != null) {
-            throw UsageError("Proto path must be specified if proto file is")
-        }
-        if (protoPath.isNotEmpty() && protoFile == null) {
-            throw UsageError("Proto file must be specified if proto path is")
-        }
+        validate()
+
+        val (pp, pf) = if (protoPath.isEmpty() && protoFile != null) {
+            val pf = File(protoFile!!)
+            val pair = if (pf.isAbsolute) {
+                pf.parentFile to pf.name
+            } else {
+                Paths.get(".").toAbsolutePath().normalize().toFile() to protoFile!!
+            }
+            println("Using proto path: ${pair.first}, proto file: ${pair.second}")
+            listOf(pair.first) to pair.second
+        } else protoPath to protoFile
+
         try {
             handler.handleCommand(
                 OkGrpcExecCommand(
@@ -58,14 +69,27 @@ internal class Execute(private val handler: OkGrpcCommandHandler<OkGrpcExecComma
                         parts.first().trim() to parts.last().trim()
                     }
                         .toMap(),
-                    protoPath.map { it.absolutePath },
-                    protoFile
+                    pp.map { it.absolutePath },
+                    pf
                 )
             )
                 .forEach(::println)
         } catch (ex: Exception) {
             if (config.stacktraceEnabled) throw ex
             else System.err.println(ex.message)
+        }
+    }
+
+    private fun validate() {
+        if (cmdArgs.isEmpty() && (fileArgs == null || fileArgs!!.isEmpty())) {
+            throw UsageError("Either arguments or a file path must be provided")
+        }
+        if (protoPath.isNotEmpty()) {
+            if (protoFile == null) {
+                throw UsageError("Proto file must be specified if proto path is")
+            } else if (protoPath.none { it.resolve(protoFile!!).exists() }) {
+                throw UsageError("Proto path must be a proper prefix of the proto file absolute path")
+            }
         }
     }
 }
