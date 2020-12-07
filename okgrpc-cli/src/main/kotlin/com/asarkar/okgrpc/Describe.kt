@@ -33,7 +33,7 @@ internal class Describe(private val handler: OkGrpcCommandHandler<OkGrpcDescComm
             handler.handleCommand(OkGrpcDescCommand(kind, config.address, symbol))
                 .forEach(::println)
         } catch (ex: Exception) {
-            if (config.stacktraceEnabled) throw ex
+            if (config.stacktraceEnabled) ex.printStackTrace()
             else System.err.println(ex.message)
         }
     }

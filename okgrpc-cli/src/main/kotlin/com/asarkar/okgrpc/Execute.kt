@@ -75,7 +75,7 @@ internal class Execute(private val handler: OkGrpcCommandHandler<OkGrpcExecComma
             )
                 .forEach(::println)
         } catch (ex: Exception) {
-            if (config.stacktraceEnabled) throw ex
+            if (config.stacktraceEnabled) ex.printStackTrace()
             else System.err.println(ex.message)
         }
     }

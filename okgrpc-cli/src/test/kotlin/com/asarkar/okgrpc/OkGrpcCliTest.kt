@@ -56,16 +56,6 @@ class OkGrpcCliTest {
     }
 
     @Test
-    fun testGetSuppressStacktrace() {
-        Mockito.`when`(getCommandHandler.handleCommand(anyNonNull()))
-            .thenThrow(RuntimeException("test"))
-        assertThatExceptionOfType(RuntimeException::class.java)
-            .isThrownBy { okGrpcCli.parse(arrayOf("-a", "localhost:8080", "--stacktrace", "get")) }
-            .withMessage("test")
-        okGrpcCli.parse(arrayOf("-a", "localhost:8080", "get"))
-    }
-
-    @Test
     fun testDesc() {
         okGrpcCli.parse(arrayOf("-a", "localhost:8080", "desc", "-s", "abc"))
         var cmd = getLatestCmd(descCommandHandler)

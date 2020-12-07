@@ -28,7 +28,7 @@ internal class Get(private val handler: OkGrpcCommandHandler<OkGrpcGetCommand>) 
             handler.handleCommand(OkGrpcGetCommand(config.address, patterns))
                 .forEach(::println)
         } catch (ex: Exception) {
-            if (config.stacktraceEnabled) throw ex
+            if (config.stacktraceEnabled) ex.printStackTrace()
             else System.err.println(ex.message)
         }
     }
